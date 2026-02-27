@@ -1,6 +1,6 @@
 TO DEVELOP ON THIS:
     1. git clone the repo
-    2. activate the virtual env (source web_env/bin/activate)
+    2. create and activate virtual environment (python3 -m venv venv ::: source venv/bin/activate)
     3. download reqs (pip install -r requirements.txt)
     4. pip freeze ideally
 DEV GUIDE:
