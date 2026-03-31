@@ -20,4 +20,7 @@ from . import views
 
 urlpatterns = [
     path('', include(auth_urls)),
+
+    #custom signup page
+    path('signup/', views.signup, name='signup'),
 ]

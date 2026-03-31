@@ -1,6 +1,6 @@
 from django.db import models
-# Will need to import User class for user_id
-
+from django.contrib.auth.models import User
+#this model stores calendar events for a user
 class CalendarEvent(models.Model):
     event_id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
