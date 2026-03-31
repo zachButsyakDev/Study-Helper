@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # this model represents courses/class section
 class NoteSection(models.Model):
     section_id = models.AutoField(primary_key=True)
@@ -7,6 +8,8 @@ class NoteSection(models.Model):
 
     def __str__(self):
         return self.name
+
+
 # individual note
 class Note(models.Model):
     note_id = models.AutoField(primary_key=True)

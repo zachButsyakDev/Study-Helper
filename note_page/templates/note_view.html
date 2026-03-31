@@ -1,5 +1,22 @@
-{% extends "base.html" %}
-
-{% block content %}
-<p>this is the page where you view your notes. look at them in all their glory.</p>
-{% endblock %}
+<!-- notes_list.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Notes List</title>
+  </head>
+  <body>
+    <h1>Notes List</h1>
+    <ul>
+      {% for note in notes %}
+      <li>
+        {{ note.notes_title }} - {{ note.notes_description }} - {{
+        note.notes_image }}
+      </li>
+      <a href="{% url 'edit_note' note.pk %}">Edit</a>
+      <a href="{% url 'delete_note' note.pk %}">Delete</a>
+      {% endfor %}
+    </ul>
+    <a href="{% url 'add_note' %}">Add Note</a>
+  </body>
+</html>

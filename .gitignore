@@ -6,5 +6,10 @@ __pycache__/
 venv/
 .env
 
+study_env/
+
+# Django database
+db.sqlite3
+
 # Django logs
 *.log
