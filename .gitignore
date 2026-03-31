@@ -1,2 +1,10 @@
-web_env/
-DS_Store/
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+.env
+
+# Django logs
+*.log
