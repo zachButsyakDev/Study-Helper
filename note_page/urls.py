@@ -3,6 +3,7 @@ from . import views
 
 
 urlpatterns = [
+    path('', views.noteSection, name='notes'),
     path('notesection/', views.noteSection, name='note_section'),
     path('updatenotesection/<int:id>/', 
          views.update_note_section, 
