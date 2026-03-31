@@ -1,5 +1,15 @@
-{% extends "base.html" %}
-
-{% block content %}
-<p>this is where you edit notes. have fun hhahgusguaug</p>
-{% endblock %}
+<!-- edit_note.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Edit Note</title>
+  </head>
+  <body>
+    <h1>Edit Note</h1>
+    <form method="post">
+      {% csrf_token %} {{ form.as_p }}
+      <button type="submit">Update</button>
+    </form>
+  </body>
+</html>

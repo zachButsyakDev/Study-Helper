@@ -3,6 +3,18 @@ from . import views
 
 
 urlpatterns = [
-    path('noteview/', views.note_view, name='note_view'),
-    path('editnote/', views.edit_note, name='edit_note')
+    path('', views.noteSection, name='notes'),
+    path('notesection/', views.noteSection, name='note_section'),
+    path('updatenotesection/<int:id>/', 
+         views.update_note_section, 
+         name='update_note_section'
+    ),
+    path(
+        'deletenotesection/<int:id>/',
+        views.delete_note_section,
+        name='delete_note_section'
+    ),
+    path('note/', views.note, name='note'),
+    path('updatenote/<int:id>/', views.update_note, name='update_note'),
+    path('deletenote/<int:id>/', views.delete_note, name='delete_note'),
 ]
