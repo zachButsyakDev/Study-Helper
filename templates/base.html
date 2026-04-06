@@ -2,75 +2,102 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Study Helper{% endblock %}</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    {% block extra_head %}{% endblock %}
+    <!-- Bootstrap CSS -->
+    <link
+        rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    >
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        .page-header {
+            margin: 30px 0;
+        }
+
+        .page-subtitle {
+            color: #6c757d;
+        }
+    </style>
 </head>
-<body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <a class="navbar-brand" href="/">Study Helper</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+<body>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <a class="navbar-brand" href="/">Study Helper</a>
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+
+        {% if user.is_authenticated %}
+            <!-- LEFT SIDE -->
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/">Home</a>
+                    <a class="nav-link" href="{% url 'home' %}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/notes/">Notes</a>
+                    <a class="nav-link" href="{% url 'notes' %}">Notes</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/calendar/">Calendar</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'account' %}">Account</a>
+                </li>
             </ul>
 
+            <!-- RIGHT SIDE -->
             <ul class="navbar-nav">
-                {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <span class="nav-link">Welcome, {{ user.username }}</span>
-                    </li>
-                     <li class="nav-item">
-                         <form action="{% url 'logout' %}" method="post">
-                         {% csrf_token %}
-                             <button type="submit" class="nav-link" style="background: none; border: none; cursor: pointer; padding: 4;">Logout</button>
-                         </form>
-                     </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/users/login/">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/users/signup/">Sign Up</a>
-                    </li>
-                {% endif %}
+                <li class="nav-item">
+                    <span class="nav-link">Hi, {{ user.username }}</span>
+                </li>
+                <li class="nav-item">
+                    <!-- SECURE LOGOUT (POST) -->
+                    <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button
+                            type="submit"
+                            class="nav-link btn btn-link"
+                            style="display:inline; padding:0; color:white; text-decoration:none;">
+                            Logout
+                        </button>
+                    </form>
+                </li>
             </ul>
-        </div>
-    </nav>
 
-    <main class="container mt-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
+        {% else %}
+            <!-- NOT LOGGED IN -->
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <span class="nav-link">Welcome</span>
+                </li>
+            </ul>
         {% endif %}
 
-        {% block content %}
-        {% endblock %}
-    </main>
+    </div>
+</nav>
 
-    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"></script>
+<!-- MAIN CONTENT -->
+<div class="container mt-4">
+    {% block content %}
+    {% endblock %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

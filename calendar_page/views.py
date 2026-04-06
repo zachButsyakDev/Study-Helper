@@ -1,5 +1,12 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import CalendarEvent
 
-# Create your views here.
-def calendar(request):
-    return render(request, "calendar_view.html", {})
+
+@login_required
+def calendar_view(request):
+    events = CalendarEvent.objects.all()
+
+    return render(request, "calendar_view.html", {
+        "events": events
+    })

@@ -1,9 +1,23 @@
 {% extends "base.html" %}
+
+{% block title %}Notes | Study Helper{% endblock %}
+
 {% block content %}
-<h1>Notes</h1>
-<ul>
-    {% for note in notes %}
-    <li>{{ note.name }}</li>
-    {% endfor %}
-</ul>
+<div class="page-header">
+    <h1>Notes</h1>
+    <p class="text-muted">Keep all your class notes organized in one place.</p>
+</div>
+
+<div class="card shadow-sm mt-4">
+    <div class="card-body text-center py-5">
+        <h3 class="mb-3">You do not have any notes yet</h3>
+        <p class="text-muted mb-4">
+            Create your first note to get started and keep track of your class material.
+        </p>
+
+        <a href="{% url 'note' %}" class="btn btn-primary btn-lg">
+            Create Note
+        </a>
+    </div>
+</div>
 {% endblock %}

@@ -1,5 +1,74 @@
 {% extends "base.html" %}
 
+{% block title %}Home | Study Helper{% endblock %}
+
 {% block content %}
-<p>this is the homie home page</p>
+<div class="page-header">
+    <h1>Welcome to Study Helper</h1>
+    <p class="page-subtitle">Organize your classes, notes, and reminders in one place.</p>
+</div>
+
+<div class="row">
+    <!-- Notes Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Notes</h4>
+
+                {% if notes %}
+                    <ul class="list-group list-group-flush">
+                        {% for note in notes %}
+                            <li class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <!-- Clicking title opens note page -->
+                                    <a href="{% url 'note' %}" class="font-weight-bold text-dark">
+                                        {{ note.title }}
+                                    </a>
+
+                                    <div>
+                                        <a href="{% url 'update_note' note.note_id %}" class="btn btn-sm btn-outline-primary mr-1">
+                                            Edit
+                                        </a>
+                                        <a href="{% url 'delete_note' note.note_id %}" class="btn btn-sm btn-outline-danger">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-3">You currently have no notes.</p>
+                    <a href="{% url 'note' %}" class="btn btn-primary btn-block">
+                        Create Note
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Calendar</h4>
+                <p class="text-muted">View upcoming events, assignments, and reminders.</p>
+                <a href="/calendar/" class="btn btn-primary btn-block">Open</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h4 class="card-title mb-3">My Account</h4>
+                <p class="text-muted">View your account information and profile details.</p>
+                <a href="{% url 'account' %}" class="btn btn-outline-primary btn-block">
+                    Open Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
