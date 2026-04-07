@@ -30,7 +30,7 @@ def noteSection(request):
         queryset = queryset.filter(name__icontains=request.GET.get('search'))
 
     context = {'notes': queryset}
-    return render(request, 'notes.html', context)
+    return render(request, 'notes_view.html', context)
 
 
 def delete_note_section(request, id):
@@ -50,7 +50,7 @@ def update_note_section(request, id):
         return redirect('/')
 
     context = {'note': note}
-    return render(request, 'update_note.html', context)
+    return render(request, 'edit_note.html', context)
 
 
 def note(request):
