@@ -1,5 +1,4 @@
-Begin Development: 1. git clone the repo 2. create and activate virtual environment (python3 -m venv venv ::: source venv/bin/activate) 3. download reqs (pip install -r requirements.txt) 4. pip freeze ideally DEV GUIDE: Our project has 3 apps: 1. core Core is the login and home screen of the app. The html for these sites can be found in core/templates 
-
+Begin Development: 1. git clone the repo 2. create and activate virtual environment (python3 -m venv venv ::: source venv/bin/activate) 3. download reqs (pip install -r requirements.txt) 4. pip freeze ideally
 To stay up to date on the project:  
 Check what branch you are currently in (git branch). Make sure you're in master; if not, switch over (git checkout master). Then update master for the latest changes (git pull origin master).
 
@@ -9,17 +8,12 @@ Create your own branch (git checkout -b my-branch-name). Make sure you're on you
 To merge your work into master:  
 Push your latest changes (git push). Open a Pull Request on GitHub and wait for the team to review it.
 
-2. note_page Note view page is the page where you will view all of the user notes (as seen in the n notes figure in the disc) and click in to edit them Edit note page is where you edit notes, also will be ideally as seen in the images 3. calendar_page Calendar page is where you will view the calendar. This one might be goofy as we also want the calendar to render in the home page which is why it's it's own app. Will be weird to figure that out but that's something we will figure out at the end.
-
-
 Current Webpage layout: 
-
-    Welcome Page ( login/sign-up)
-    Home Page ( User dashboard, view )
-    Notes Page ( Users Notes, Create a note, Edit note, Delete note ) * in process * 
-    Calendar page ( Calendar Months, Add Event Feature, 
-    Account page ( Users information, change password, account deletion) 
-
+    Welcome Page
+    Home Page
+    Notes Page
+    Calendar page
+    Account page
 
 TO-DO / Additional Features ideas: 
 
@@ -30,8 +24,6 @@ Notes Page: create a note, edit a note, and delete a note. Notes will be placed 
 Calendar: add event, events should have a date, time, and title, maybe description. Edit or delete an event option. Customize the calendar ( color code different event types, design the calendar). drag and drop feature for events. other feature: notification system alerts on events.
 
 Account page: Change email, change password options and account deletion option along with are you sure message.
-
-
 
 Make sure to refer to the Study Helper Layout Guide for any page development, although it may need an update it still has some guidance in the meantime: 
 https://uofnebraska-my.sharepoint.com/:w:/r/personal/96585664_nebraska_edu/Documents/Study%20Helper%20Layout.docx?d=w5443d516d9c446508ab7ef59078a4177&csf=1&web=1&e=oRQdyC
