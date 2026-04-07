@@ -1,4 +1,5 @@
 Begin Development: 1. git clone the repo 2. create and activate virtual environment (python3 -m venv venv ::: source venv/bin/activate) 3. download reqs (pip install -r requirements.txt) 4. pip freeze ideally
+
 To stay up to date on the project:  
 Check what branch you are currently in (git branch). Make sure you're in master; if not, switch over (git checkout master). Then update master for the latest changes (git pull origin master).
 
@@ -16,7 +17,6 @@ Current Webpage layout:
     Account page
 
 TO-DO / Additional Features ideas: 
-
 Home Page: add calendar to dashboard (can be a smaller calendar or just drop-down feature of calendar events), display notebooks or classes on dashboard, upon clicking will take user to notes page, add user customization (background design or color, grab to customize layout, adjust size of cards ). Other ideas: Stop watch, calculator, to-do card for upcoming assignemnts or tasks ( maybe its own page ). 
 
 Notes Page: create a note, edit a note, and delete a note. Notes will be placed into notebooks or classes, so it will be like title and then body. but the title will be the notebook and thats what will show in the dashboard. other features: file uploader, upload a screenshot or photo. 
