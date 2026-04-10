@@ -17,13 +17,14 @@ Current Webpage layout:
     Account page
 
 TO-DO / Additional Features ideas: 
+
 Home Page: add calendar to dashboard (can be a smaller calendar or just drop-down feature of calendar events), display notebooks or classes on dashboard, upon clicking will take user to notes page, add user customization (background design or color, grab to customize layout, adjust size of cards ). Other ideas: Stop watch, calculator, to-do card for upcoming assignemnts or tasks ( maybe its own page ). 
 
 Notes Page: create a note, edit a note, and delete a note. Notes will be placed into notebooks or classes, so it will be like title and then body. but the title will be the notebook and thats what will show in the dashboard. other features: file uploader, upload a screenshot or photo. 
 
 Calendar: add event, events should have a date, time, and title, maybe description. Edit or delete an event option. Customize the calendar ( color code different event types, design the calendar). drag and drop feature for events. other feature: notification system alerts on events.
 
-Account page: Change email, change password options and account deletion option along with are you sure message.
+Account page: Change email, change password options and account deletion option along with are you sure message. Student will be able to track the amount of time spent inside the study-helper to ensure their study hours are being met, this will be foudn in the account page. in order for this to work the timer will begin when students log in and they will NEED to logout each time, upon logging out they will be met with a message with their total study hours. students will also be able to actively see thier study hour time as they are in the study-helper under the account page. 
 
 Make sure to refer to the Study Helper Layout Guide for any page development, although it may need an update it still has some guidance in the meantime: 
 https://uofnebraska-my.sharepoint.com/:w:/r/personal/96585664_nebraska_edu/Documents/Study%20Helper%20Layout.docx?d=w5443d516d9c446508ab7ef59078a4177&csf=1&web=1&e=oRQdyC
