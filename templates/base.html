@@ -1,104 +1,118 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>{% block title %}Study Helper{% endblock %}</title>
 
     <!-- Bootstrap CSS -->
     <link
-        rel="stylesheet"
-        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    >
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
 
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
+      body {
+        background-color: #f8f9fa;
+      }
 
-        .navbar-brand {
-            font-weight: bold;
-        }
+      .navbar-brand {
+        font-weight: bold;
+      }
 
-        .page-header {
-            margin: 30px 0;
-        }
+      .page-header {
+        margin: 30px 0;
+      }
 
-        .page-subtitle {
-            color: #6c757d;
-        }
+      .page-subtitle {
+        color: #6c757d;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+      <a class="navbar-brand" href="/">Study Helper</a>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-    <a class="navbar-brand" href="/">Study Helper</a>
-
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+      >
         <span class="navbar-toggler-icon"></span>
-    </button>
+      </button>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-
+      <div class="collapse navbar-collapse" id="navbarNav">
         {% if user.is_authenticated %}
-            <!-- LEFT SIDE -->
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'home' %}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'notes' %}">Notes</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/calendar/">Calendar</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'account' %}">Account</a>
-                </li>
-            </ul>
+        <!-- LEFT SIDE -->
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'home' %}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'notes' %}">Notes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'assistant:chat' %}"
+              >AI Assistant</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/calendar/">Calendar</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'account' %}">Account</a>
+          </li>
+        </ul>
 
-            <!-- RIGHT SIDE -->
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <span class="nav-link">Hi, {{ user.username }}</span>
-                </li>
-                <li class="nav-item">
-                    <!-- SECURE LOGOUT (POST) -->
-                    <form method="post" action="{% url 'logout' %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button
-                            type="submit"
-                            class="nav-link btn btn-link"
-                            style="display:inline; padding:0; color:white; text-decoration:none;">
-                            Logout
-                        </button>
-                    </form>
-                </li>
-            </ul>
+        <!-- RIGHT SIDE -->
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <span class="nav-link">Hi, {{ user.username }}</span>
+          </li>
+          <li class="nav-item">
+            <!-- SECURE LOGOUT (POST) -->
+            <form
+              method="post"
+              action="{% url 'logout' %}"
+              style="display: inline"
+            >
+              {% csrf_token %}
+              <button
+                type="submit"
+                class="nav-link btn btn-link"
+                style="
+                  display: inline;
+                  padding: 0;
+                  color: white;
+                  text-decoration: none;
+                "
+              >
+                Logout
+              </button>
+            </form>
+          </li>
+        </ul>
 
         {% else %}
-            <!-- NOT LOGGED IN -->
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <span class="nav-link">Welcome</span>
-                </li>
-            </ul>
+        <!-- NOT LOGGED IN -->
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <span class="nav-link">Welcome</span>
+          </li>
+        </ul>
         {% endif %}
+      </div>
+    </nav>
 
-    </div>
-</nav>
+    <!-- MAIN CONTENT -->
+    <div class="container mt-4">{% block content %} {% endblock %}</div>
 
-<!-- MAIN CONTENT -->
-<div class="container mt-4">
-    {% block content %}
-    {% endblock %}
-</div>
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-
-{% block extra_scripts %}{% endblock %}
-</body>
+    {% block extra_scripts %}{% endblock %}
+  </body>
 </html>

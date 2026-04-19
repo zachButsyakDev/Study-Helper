@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'core',
     'note_page',
     'calendar_page',
+    "ai_assisstant",
 ]
 
 MIDDLEWARE = [

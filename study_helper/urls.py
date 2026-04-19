@@ -7,5 +7,6 @@ urlpatterns = [
     path('', include('core.urls')), # core app has home and login page
     path('notes/', include('note_page.urls')),
     path('calendar/', include('calendar_page.urls')),
+    path("assistant/", include("ai_assisstant.urls", namespace="assistant")),
     path('users/', include('users.urls')),
 ]
