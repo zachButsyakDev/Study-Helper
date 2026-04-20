@@ -1,109 +1,121 @@
-# from django.shortcuts import render
-
-# # Create your views here.
-# def note_view(request):
-#     return render(request, "note_view.html", {})
-
-# def edit_note(request):
-#     return render(request, "edit_note.html", {})
-
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import NoteSection, Note
 from django.contrib.auth.decorators import login_required
+from .models import NoteSection, Note
+from .forms import NoteForm, NoteSectionForm
+
 
 @login_required
-def noteSection(request):
-    if request.method == 'POST':
-        data = request.POST
-        
-        section_id = data.get('section_id')
-        note_section_name = data.get('note_section_name')
-
-        NoteSection.objects.create(
-            section_id=section_id,
-            name=note_section_name,
+def notes_list(request):
+    """Main notes page: lists all notes belonging to the logged-in user."""
+    search_query = request.GET.get('search', '')
+    notes = Note.objects.filter(user=request.user).order_by('-updated_at')
+    if search_query:
+        notes = notes.filter(title__icontains=search_query) | Note.objects.filter(
+            user=request.user, content__icontains=search_query
         )
-        return redirect('/')
-
-    queryset = NoteSection.objects.all()
-    
-    if request.GET.get('search'):
-        queryset = queryset.filter(name__icontains=request.GET.get('search'))
-
-    context = {'notes': queryset}
+    sections = NoteSection.objects.filter(user=request.user)
+    context = {
+        'notes': notes,
+        'sections': sections,
+        'search_query': search_query,
+    }
     return render(request, 'notes.html', context)
 
-@login_required
-def delete_note_section(request, id):
-    note = get_object_or_404(NoteSection, id=id)
-    note.delete()
-    return redirect('/')
 
 @login_required
-def update_note_section(request, id):
-    note = get_object_or_404(NoteSection, id=id)
+def create_note(request):
+    """Create a new note for the logged-in user."""
     if request.method == 'POST':
-        data = request.POST
-        note_section_name = data.get('note_section_name')
+        form = NoteForm(request.POST)
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.user = request.user
+            note.save()
+            return redirect('note_view', id=note.note_id)
+    else:
+        form = NoteForm()
+        # Limit section choices to this user's sections
+        form.fields['section'].queryset = NoteSection.objects.filter(user=request.user)
 
-        note.name = note_section_name
-        note.save()
-        return redirect('/')
+    context = {'form': form}
+    return render(request, 'note_view.html', context)
 
+
+@login_required
+def note_view(request, id):
+    """View a single note (read-only)."""
+    note = get_object_or_404(Note, note_id=id, user=request.user)
     context = {'note': note}
-    return render(request, 'update_note.html', context)
+    return render(request, 'note_detail.html', context)
 
 
-def note(request):
+@login_required
+def edit_note(request, id):
+    """Edit an existing note."""
+    note = get_object_or_404(Note, note_id=id, user=request.user)
     if request.method == 'POST':
-        data = request.POST
-        note_id = data.get('note_id')
-        note_section_id = data.get('note_section_id')
-        content = data.get('content')
-        transcription = data.get('transcription')
-        
-        Note.objects.create(
-            note_id=note_id,
-            section_id_id=note_section_id,
-            content=content,
-            transcription=transcription
-        )
-        return redirect('/')
-    
-    queryset = Note.objects.all()
-    
-    if request.GET.get('search'):
-        queryset = queryset.filter(content__icontains=request.GET.get('search'))
+        form = NoteForm(request.POST, instance=note)
+        if form.is_valid():
+            form.save()
+            return redirect('note_view', id=note.note_id)
+    else:
+        form = NoteForm(instance=note)
+        form.fields['section'].queryset = NoteSection.objects.filter(user=request.user)
 
-    context = {'notes': queryset}
-    return render(request, 'notes.html', context)
+    context = {'form': form, 'note': note}
+    return render(request, 'edit_note.html', context)
+
 
 @login_required
 def delete_note(request, id):
-    note = get_object_or_404(Note, id=id)
-    note.delete()
-    return redirect('/')
-
-@login_required
-def update_note(request, id):
-    note = get_object_or_404(Note, id=id)
+    """Delete a note belonging to the logged-in user."""
+    note = get_object_or_404(Note, note_id=id, user=request.user)
     if request.method == 'POST':
-        data = request.POST
-        note_section_id = data.get('note_section_id')
-        content = data.get('content')
-        transcription = data.get('transcription')
-
-        note.section_id_id = note_section_id
-        note.content = content
-        note.transcription = transcription
-        note.save()
-        return redirect('/')
-
+        note.delete()
+        return redirect('notes')
     context = {'note': note}
-    return render(request, 'update_note.html', context)
+    return render(request, 'confirm_delete_note.html', context)
 
-    
+
+# ── NoteSection views ──────────────────────────────────────────────────────────
+
 @login_required
-def note_view(request, id):
-    return render(request, 'note_view.html')
-    
+def create_note_section(request):
+    """Create a new section/folder for notes."""
+    if request.method == 'POST':
+        form = NoteSectionForm(request.POST)
+        if form.is_valid():
+            section = form.save(commit=False)
+            section.user = request.user
+            section.save()
+            return redirect('notes')
+    else:
+        form = NoteSectionForm()
+    context = {'form': form}
+    return render(request, 'note_section_form.html', context)
+
+
+@login_required
+def update_note_section(request, id):
+    """Rename a section."""
+    section = get_object_or_404(NoteSection, section_id=id, user=request.user)
+    if request.method == 'POST':
+        form = NoteSectionForm(request.POST, instance=section)
+        if form.is_valid():
+            form.save()
+            return redirect('notes')
+    else:
+        form = NoteSectionForm(instance=section)
+    context = {'form': form, 'section': section}
+    return render(request, 'note_section_form.html', context)
+
+
+@login_required
+def delete_note_section(request, id):
+    """Delete a section (notes in it become unsectioned)."""
+    section = get_object_or_404(NoteSection, section_id=id, user=request.user)
+    if request.method == 'POST':
+        section.delete()
+        return redirect('notes')
+    context = {'section': section}
+    return render(request, 'confirm_delete_section.html', context)

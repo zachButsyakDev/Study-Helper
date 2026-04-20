@@ -14,30 +14,30 @@
             {% csrf_token %}
 
             <div class="form-group">
-                <label for="noteTitle">Note Title</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="noteTitle"
-                    name="title"
-                    placeholder="Enter note title">
+                <label for="id_title">Note Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="text-danger">{{ form.title.errors }}</div>
+                {% endif %}
             </div>
 
             <div class="form-group">
-                <label for="noteBody">Note Body</label>
-                <textarea
-                    class="form-control"
-                    id="noteBody"
-                    name="content"
-                    rows="10"
-                    placeholder="Type your note here..."></textarea>
+                <label for="id_section">Section (optional)</label>
+                {{ form.section }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_content">Note Body</label>
+                {{ form.content }}
+                {% if form.content.errors %}
+                    <div class="text-danger">{{ form.content.errors }}</div>
+                {% endif %}
             </div>
 
             <div class="d-flex justify-content-between">
                 <a href="{% url 'notes' %}" class="btn btn-outline-secondary">
                     Back
                 </a>
-
                 <button type="submit" class="btn btn-primary">
                     Save Note
                 </button>
