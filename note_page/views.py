@@ -11,6 +11,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import NoteSection, Note
 from django.contrib.auth.decorators import login_required
 
+@login_required
 def noteSection(request):
     if request.method == 'POST':
         data = request.POST
@@ -32,13 +33,13 @@ def noteSection(request):
     context = {'notes': queryset}
     return render(request, 'notes.html', context)
 
-
+@login_required
 def delete_note_section(request, id):
     note = get_object_or_404(NoteSection, id=id)
     note.delete()
     return redirect('/')
 
-
+@login_required
 def update_note_section(request, id):
     note = get_object_or_404(NoteSection, id=id)
     if request.method == 'POST':
@@ -77,13 +78,13 @@ def note(request):
     context = {'notes': queryset}
     return render(request, 'notes.html', context)
 
-
+@login_required
 def delete_note(request, id):
     note = get_object_or_404(Note, id=id)
     note.delete()
     return redirect('/')
 
-
+@login_required
 def update_note(request, id):
     note = get_object_or_404(Note, id=id)
     if request.method == 'POST':
@@ -100,3 +101,9 @@ def update_note(request, id):
 
     context = {'note': note}
     return render(request, 'update_note.html', context)
+
+    
+@login_required
+def note_view(request, id):
+    return render(request, 'note_view.html')
+    
