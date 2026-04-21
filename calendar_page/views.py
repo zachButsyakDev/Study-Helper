@@ -14,7 +14,7 @@ def calendar(request):
 
 @login_required
 def events_json(request):
-    events = CalendarEvent.objects.filter(user_id=request.user)
+    events = CalendarEvent.objects.filter(user=request.user)
     data = []
     for e in events:
         data.append({
@@ -46,11 +46,11 @@ def event_create(request):
     if timezone.is_naive(start):
         start = timezone.make_aware(start)
 
-    if CalendarEvent.objects.filter(user_id=request.user, title=title, start=start).exists():
+    if CalendarEvent.objects.filter(user=request.user, title=title, start=start).exists():
         return JsonResponse({'error': 'An identical event already exists.'}, status=400)
 
     event = CalendarEvent.objects.create(
-        user_id=request.user,
+        user=request.user,
         title=title,
         description=description,
         start=start,
@@ -62,7 +62,7 @@ def event_create(request):
 
 @login_required
 def event_detail(request, pk):
-    event = get_object_or_404(CalendarEvent, event_id=pk, user_id=request.user)
+    event = get_object_or_404(CalendarEvent, event_id=pk, user=request.user)
     return JsonResponse({
         'id':          event.event_id,
         'title':       event.title,
@@ -76,7 +76,7 @@ def event_detail(request, pk):
 @login_required
 @require_POST
 def event_edit(request, pk):
-    event = get_object_or_404(CalendarEvent, event_id=pk, user_id=request.user)
+    event = get_object_or_404(CalendarEvent, event_id=pk, user=request.user)
 
     title       = request.POST.get('title', '').strip()
     description = request.POST.get('description', '').strip()
@@ -105,6 +105,6 @@ def event_edit(request, pk):
 @login_required
 @require_POST
 def event_delete(request, pk):
-    event = get_object_or_404(CalendarEvent, event_id=pk, user_id=request.user)
+    event = get_object_or_404(CalendarEvent, event_id=pk, user=request.user)
     event.delete()
     return JsonResponse({'success': True})
