@@ -3,7 +3,7 @@
 # To test:
 # Firefox must be installed
 # pip install selenium==4.30.0 pytest==8.3.5
-# pytest -s test_study_helper.py
+# pytest -s test_study_helper_dep.py
 
 import pytest
 import time
