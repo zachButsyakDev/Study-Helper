@@ -5,9 +5,12 @@
 # pip install selenium==4.30.0 pytest==8.3.5
 # pytest -s test_study_helper.py
 
+# for specific tests:
+# pytest -k "name_of_test"
+
 import pytest
 import time
-import pickle
+import uuid
 import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -27,134 +30,155 @@ class TestStudyHelper():
   def teardown_method(self, method):
     time.sleep(3)
     self.driver.quit()
+
+  def signUp(self, test_ID, unique_ID):
+    self.driver.find_element(By.LINK_TEXT, "Sign Up").click()
+    self.driver.find_element(By.ID, "id_username").send_keys(f"Example_{test_ID}_{unique_ID}")
+    self.driver.find_element(By.ID, "id_email").send_keys(f"example_{test_ID}_{unique_ID}@gmail.com")
+    self.driver.find_element(By.ID, "id_password1").send_keys("TestingSignUp123")
+    self.driver.find_element(By.ID, "id_password2").send_keys("TestingSignUp123")
+    self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+    time.sleep(2)
+
+  def addMathNote(self):
+    self.driver.find_element(By.CSS_SELECTOR, ".btn-primary").click()
+    self.driver.find_element(By.LINK_TEXT, "Notes").click()
+    self.driver.find_element(By.LINK_TEXT, "+ New Note").click()
+    self.driver.find_element(By.ID, "id_title").click()
+    self.driver.find_element(By.ID, "id_title").clear()
+    self.driver.find_element(By.ID, "id_title").send_keys("Math Exam")
+    self.driver.find_element(By.ID, "id_content").click()
+    self.driver.find_element(By.ID, "id_content").send_keys("Study Calculus Formulas")
+    self.driver.find_element(By.CSS_SELECTOR, ".btn-primary").click()
+    self.driver.find_element(By.LINK_TEXT, "Home").click()
+    time.sleep(2)
+
+  def addScienceNote(self):
+    self.driver.find_element(By.LINK_TEXT, "Notes").click()
+    self.driver.find_element(By.LINK_TEXT, "+ New Note").click()
+    self.driver.find_element(By.ID, "id_title").click()
+    self.driver.find_element(By.ID, "id_title").clear()
+    self.driver.find_element(By.ID, "id_title").send_keys("Science Exam")
+    self.driver.find_element(By.CSS_SELECTOR, ".btn-primary").click()
+    self.driver.find_element(By.LINK_TEXT, "Home").click()
+    time.sleep(2)
+
+  def addEvent(self):
+    self.driver.find_element(By.LINK_TEXT, "Calendar").click()
+    self.driver.find_element(By.ID, "btn-new-event").click()
+    time.sleep(1)
+    self.driver.find_element(By.ID, "f-title").click()
+    self.driver.find_element(By.ID, "f-title").send_keys("Math Exam")
+    self.driver.find_element(By.ID, "f-start").click()
+    self.driver.find_element(By.ID, "f-start").send_keys("04-24-2026T21:00")
+    self.driver.find_element(By.ID, "f-tags").click()
+    self.driver.find_element(By.ID, "f-tags").send_keys("Math")
+    self.driver.find_element(By.ID, "btn-save").click()
+    time.sleep(2)
   
   def test_signup(self):
     self.driver.get(f"http://{self.URL}/")
+    signUpUUID = uuid.uuid4().hex[:12]
     self.driver.find_element(By.LINK_TEXT, "Sign Up").click()
     self.driver.find_element(By.ID, "id_username").click()
-    self.driver.find_element(By.ID, "id_username").send_keys("ExampleUser1")
+    self.driver.find_element(By.ID, "id_username").send_keys(f"Example_SignUp_{signUpUUID}")
     self.driver.find_element(By.ID, "id_email").click()
-    self.driver.find_element(By.ID, "id_email").send_keys("example@gmail.com")
+    self.driver.find_element(By.ID, "id_email").send_keys(f"example_SignUp_{signUpUUID}@gmail.com")
     self.driver.find_element(By.ID, "id_password1").click()
     self.driver.find_element(By.ID, "id_password1").send_keys("TestingSignUp123")
     self.driver.find_element(By.ID, "id_password2").click()
     self.driver.find_element(By.ID, "id_password2").send_keys("TestingSignUp123")
-    time.sleep(3)
+    time.sleep(6)
     self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
     assert "home" in self.driver.current_url
 
   def test_login(self):
     self.driver.get(f"http://{self.URL}/")
     self.driver.find_element(By.ID, "loginUsername").click()
-    self.driver.find_element(By.ID, "loginUsername").send_keys("ExampleUser1")
+    self.driver.find_element(By.ID, "loginUsername").send_keys("Example_Login123")
     self.driver.find_element(By.ID, "loginPassword").click()
     self.driver.find_element(By.ID, "loginPassword").send_keys("TestingSignUp123")
     time.sleep(3)
     self.driver.find_element(By.CSS_SELECTOR, ".btn-primary").click()
-    cookies = self.driver.get_cookies()
-    with open("cookies.pkl", "wb") as file:
-      pickle.dump(cookies, file)
     assert "home" in self.driver.current_url
 
   def test_accessaccount(self):
-    self.driver.get(f"http://{self.URL}/home/")
-    with open("cookies.pkl", "rb") as file:
-      cookies = pickle.load(file)
-    for cookie in cookies:
-      self.driver.add_cookie(cookie)
-    self.driver.refresh()
-    time.sleep(1)
+    self.driver.get(f"http://{self.URL}/")
+    accessAccountUUID = uuid.uuid4().hex[:12]
+    self.signUp("account", accessAccountUUID)
     self.driver.find_element(By.LINK_TEXT, "Account").click()
     assert "account" in self.driver.current_url
+    time.sleep(2)
 
   def test_addnote(self):
-    self.driver.get(f"http://{self.URL}/home/")
-    with open("cookies.pkl", "rb") as file:
-      cookies = pickle.load(file)
-    for cookie in cookies:
-      self.driver.add_cookie(cookie)
-    self.driver.refresh()
-    time.sleep(1)
+    self.driver.get(f"http://{self.URL}/")
+    addNoteUUID = uuid.uuid4().hex[:12]
+    self.signUp("addNote", addNoteUUID)
     self.driver.find_element(By.LINK_TEXT, "Notes").click()
+    time.sleep(3)
     self.driver.find_element(By.LINK_TEXT, "+ New Note").click()
     time.sleep(3)
     self.driver.find_element(By.ID, "id_title").click()
     self.driver.find_element(By.ID, "id_title").clear()
-    self.driver.find_element(By.ID, "id_title").send_keys("Math Test")
+    self.driver.find_element(By.ID, "id_title").send_keys("Math Exam")
     self.driver.find_element(By.ID, "id_content").click()
     self.driver.find_element(By.ID, "id_content").send_keys("Study Calculus Formulas")
-    time.sleep(4)
+    time.sleep(5)
     self.driver.find_element(By.CSS_SELECTOR, ".btn-primary").click()
+    time.sleep(2)
 
   def test_editnote(self):
-    self.driver.get(f"http://{self.URL}/home/")
-    with open("cookies.pkl", "rb") as file:
-      cookies = pickle.load(file)
-    for cookie in cookies:
-      self.driver.add_cookie(cookie)
-    self.driver.refresh()
-    time.sleep(1)
+    self.driver.get(f"http://{self.URL}/")
+    editNoteUUID = uuid.uuid4().hex[:12]
+    self.signUp("editNote", editNoteUUID)
+    self.addMathNote()
     self.driver.find_element(By.LINK_TEXT, "Notes").click()
     time.sleep(3)
     self.driver.find_element(By.LINK_TEXT, "Edit").click()
-    time.sleep(2)
+    time.sleep(5)
     self.driver.find_element(By.ID, "id_title").click()
     self.driver.find_element(By.ID, "id_title").clear()
-    self.driver.find_element(By.ID, "id_title").send_keys("Math Test 2")
+    self.driver.find_element(By.ID, "id_title").send_keys("Math Exam 2")
     self.driver.find_element(By.ID, "id_content").click()
     self.driver.find_element(By.ID, "id_content").clear()
     self.driver.find_element(By.ID, "id_content").send_keys("Study Calculus Formulas Study\nLinear Algebra Formulas")
-    time.sleep(4)
+    time.sleep(6)
     self.driver.find_element(By.CSS_SELECTOR, ".btn-primary").click()
+    time.sleep(2)
 
   def test_searchnote(self):
-    self.driver.get(f"http://{self.URL}/home/")
-    with open("cookies.pkl", "rb") as file:
-      cookies = pickle.load(file)
-    for cookie in cookies:
-      self.driver.add_cookie(cookie)
-    self.driver.refresh()
-    time.sleep(1)
+    self.driver.get(f"http://{self.URL}/")
+    searchNoteUUID = uuid.uuid4().hex[:12]
+    self.signUp("searchNote", searchNoteUUID)
+    self.addMathNote()
+    self.addScienceNote()
     self.driver.find_element(By.LINK_TEXT, "Notes").click()
-    time.sleep(3)
-    self.driver.find_element(By.LINK_TEXT, "+ New Note").click()
-    self.driver.find_element(By.ID, "id_title").click()
-    self.driver.find_element(By.ID, "id_title").clear()
-    self.driver.find_element(By.ID, "id_title").send_keys("Science Test")
-    time.sleep(3)
-    self.driver.find_element(By.CSS_SELECTOR, ".btn-primary").click()
-    self.driver.find_element(By.LINK_TEXT, "← Back to Notes").click()
-    time.sleep(3)
+    time.sleep(4)
     self.driver.find_element(By.NAME, "search").click()
-    self.driver.find_element(By.NAME, "search").send_keys("Math Test")
+    self.driver.find_element(By.NAME, "search").send_keys("Math")
     time.sleep(3)
     self.driver.find_element(By.CSS_SELECTOR, "body").click()
     self.driver.find_element(By.CSS_SELECTOR, ".btn-outline-secondary:nth-child(1)").click()
+    time.sleep(2)
 
   def test_deletenote(self):
-    self.driver.get(f"http://{self.URL}/home/")
-    with open("cookies.pkl", "rb") as file:
-      cookies = pickle.load(file)
-    for cookie in cookies:
-      self.driver.add_cookie(cookie)
-    self.driver.refresh()
-    time.sleep(1)
+    self.driver.get(f"http://{self.URL}/")
+    deleteNoteUUID = uuid.uuid4().hex[:12]
+    self.signUp("deleteNote", deleteNoteUUID)
+    self.addScienceNote()
     self.driver.find_element(By.LINK_TEXT, "Notes").click()
     time.sleep(3)
     self.driver.find_element(By.LINK_TEXT, "Delete").click()
     time.sleep(3)
     self.driver.find_element(By.CSS_SELECTOR, ".btn-danger").click()
+    time.sleep(2)
 
   def test_addevent(self):
-    self.driver.get(f"http://{self.URL}/home/")
-    with open("cookies.pkl", "rb") as file:
-      cookies = pickle.load(file)
-    for cookie in cookies:
-      self.driver.add_cookie(cookie)
-    self.driver.refresh()
-    time.sleep(1)
+    self.driver.get(f"http://{self.URL}/")
+    addEventUUID = uuid.uuid4().hex[:12]
+    self.signUp("addEvent", addEventUUID)
     self.driver.find_element(By.LINK_TEXT, "Calendar").click()
-    time.sleep(2)
+    time.sleep(3)
     self.driver.find_element(By.ID, "btn-new-event").click()
     time.sleep(3)
     self.driver.find_element(By.ID, "f-title").click()
@@ -165,35 +189,34 @@ class TestStudyHelper():
     time.sleep(2)
     self.driver.find_element(By.ID, "f-tags").click()
     self.driver.find_element(By.ID, "f-tags").send_keys("Math")
-    time.sleep(3)
+    time.sleep(5)
     self.driver.find_element(By.ID, "btn-save").click()
+    time.sleep(3)
 
   def test_editevent(self):
-    self.driver.get(f"http://{self.URL}/home/")
-    with open("cookies.pkl", "rb") as file:
-      cookies = pickle.load(file)
-    for cookie in cookies:
-      self.driver.add_cookie(cookie)
-    self.driver.refresh()
-    time.sleep(1)
-    self.driver.find_element(By.LINK_TEXT, "Calendar").click()
+    self.driver.get(f"http://{self.URL}/")
+    editEventUUID = uuid.uuid4().hex[:12]
+    self.signUp("editEvent", editEventUUID)
+    self.addEvent()
     time.sleep(2)
     self.driver.find_element(By.CSS_SELECTOR, ".event-pill").click()
     time.sleep(2)
     self.driver.find_element(By.ID, "f-title").click()
     self.driver.find_element(By.ID, "f-title").clear()
     self.driver.find_element(By.ID, "f-title").send_keys("Math Exam 2")
+    time.sleep(1)
     self.driver.find_element(By.ID, "f-desc").click()
     self.driver.find_element(By.ID, "f-desc").clear()
     self.driver.find_element(By.ID, "f-desc").send_keys("Algebra")
-    time.sleep(2)
+    time.sleep(1)
     self.driver.find_element(By.ID, "f-start").click()
     self.driver.find_element(By.ID, "f-start").clear()
     self.driver.find_element(By.ID, "f-start").send_keys("04-23-2026T22:00")
+    time.sleep(1)
     self.driver.find_element(By.ID, "f-duration").click()
     self.driver.find_element(By.ID, "f-duration").clear()
     self.driver.find_element(By.ID, "f-duration").send_keys("90")
-    time.sleep(2)
+    time.sleep(1)
     self.driver.find_element(By.ID, "f-tags").click()
     self.driver.find_element(By.ID, "f-tags").clear()
     self.driver.find_element(By.ID, "f-tags").send_keys("Algebra")
@@ -201,14 +224,10 @@ class TestStudyHelper():
     self.driver.find_element(By.ID, "btn-save").click()
 
   def test_deleteevent(self):
-    self.driver.get(f"http://{self.URL}/home/")
-    with open("cookies.pkl", "rb") as file:
-      cookies = pickle.load(file)
-    for cookie in cookies:
-      self.driver.add_cookie(cookie)
-    self.driver.refresh()
-    time.sleep(1)
-    self.driver.find_element(By.LINK_TEXT, "Calendar").click()
+    self.driver.get(f"http://{self.URL}/")
+    deleteEventUUID = uuid.uuid4().hex[:12]
+    self.signUp("deleteEvent", deleteEventUUID)
+    self.addEvent()
     time.sleep(2)
     self.driver.find_element(By.CSS_SELECTOR, ".event-pill").click()
     time.sleep(3)
@@ -216,18 +235,19 @@ class TestStudyHelper():
     assert self.driver.switch_to.alert.text == "Delete this event?"
     time.sleep(3)
     self.driver.switch_to.alert.accept()
+    time.sleep(2)
 
   def test_logout(self):
-    self.driver.get(f"http://{self.URL}/home/")
-    with open("cookies.pkl", "rb") as file:
-      cookies = pickle.load(file)
-    for cookie in cookies:
-      self.driver.add_cookie(cookie)
-    self.driver.refresh()
-    time.sleep(3)
+    self.driver.get(f"http://{self.URL}/")
+    self.driver.find_element(By.ID, "loginUsername").click()
+    self.driver.find_element(By.ID, "loginUsername").send_keys("Example_Login123")
+    self.driver.find_element(By.ID, "loginPassword").click()
+    self.driver.find_element(By.ID, "loginPassword").send_keys("TestingSignUp123")
     self.driver.find_element(By.CSS_SELECTOR, ".btn-primary").click()
+    time.sleep(3)
     self.driver.find_element(By.CSS_SELECTOR, ".btn-light").click()
     time.sleep(3)
     assert self.driver.switch_to.alert.text == "Are you sure you want to log out?"
     self.driver.switch_to.alert.accept()
     assert "" in self.driver.current_url
+    time.sleep(2)
