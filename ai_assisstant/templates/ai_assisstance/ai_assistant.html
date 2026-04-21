@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}AI Assistant{% endblock %}
+
+{% block content %}
+<div id="aiMainCard" class="card">
+    <div class="card-header">
+        AI Assistant
+    </div>
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <label for="conversationSelect" class="small text-muted mb-0">Conversation</label>
+                <select id="conversationSelect" class="form-control form-control-sm" style="display:inline-block; width:260px; margin-left:8px;">
+                    <option value="">New conversation</option>
+                </select>
+                <button id="newConversationBtn" class="btn btn-sm btn-outline-secondary ml-2" type="button">New</button>
+            </div>
+            <div class="text-muted small">Persistent chat saved to your account (if signed in)</div>
+        </div>
+        <div id="messages" style="height:300px; overflow:auto; border:1px solid #eee; padding:10px; border-radius:6px;"></div>
+
+        <div class="input-group mt-3">
+            <textarea
+                id="userInput"
+                class="form-control autosize"
+                placeholder="Ask the assistant (summarize, rewrite, quiz)"
+                rows="1"></textarea>
+            <div class="input-group-append">
+                <button id="sendBtn" class="btn btn-primary" type="button">Send</button>
+            </div>
+        </div>
+
+        <p class="mt-2 small text-muted">
+            Tip: select text in a note and use AI Explain or AI Command to open the right-side chat panel.
+        </p>
+
+        <button id="openEditorBtn" class="btn btn-outline-secondary mt-2" type="button">
+            AI Assist (inline)
+        </button>
+    </div>
+</div>
+
+{% include "ai_assisstance/chat.html" %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    const mainMessages = document.getElementById('messages');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const openEditorBtn = document.getElementById('openEditorBtn');
+
+    window.currentConversationId = null;
+
+    async function loadConversations() {
+        try {
+            const res = await fetch("{% url 'assistant:conversations_list' %}");
+            if (!res.ok) return;
+            const convs = await res.json();
+            const sel = document.getElementById('conversationSelect');
+            // clear existing options (keep first 'New conversation')
+            const keep = sel.options[0];
+            sel.innerHTML = '';
+            sel.appendChild(keep);
+            convs.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.title || `Conversation ${c.id}`;
+                sel.appendChild(opt);
+            });
+            // if there's a selected conversation in window state, set it
+            if (window.currentConversationId) {
+                sel.value = String(window.currentConversationId);
+                // fetch and render its messages
+                try { fetchConversationDetail(window.currentConversationId); } catch(e) {}
+            }
+        } catch (err) {
+            console.warn('Failed to load conversations', err);
+        }
+    }
+
+    async function fetchConversationDetail(id) {
+        if (!id) return;
+        const urlTemplate = "{% url 'assistant:conversation_detail' 0 %}"; // will replace 0 with id
+        const url = urlTemplate.replace('/0/', `/${id}/`).replace('0', id);
+        try {
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) {
+                console.warn('Failed to fetch conversation', res.status);
+                if (res.status === 403 || res.status === 401) {
+                    mainMessages.innerHTML = '<div class="text-muted">Sign in to view saved conversations.</div>';
+                }
+                return;
+            }
+            const data = await res.json();
+            if (data && Array.isArray(data.messages)) {
+                renderConversationMessages(data.messages);
+            }
+        } catch (err) {
+            console.warn('Error loading conversation detail', err);
+        }
+    }
+
+    function renderConversationMessages(messages) {
+        mainMessages.innerHTML = '';
+        if (!messages || !messages.length) {
+            mainMessages.innerHTML = '<div class="text-muted">No messages in this conversation.</div>';
+            return;
+        }
+        messages.forEach(m => {
+            const role = m.role || 'assistant';
+            const content = m.content || '';
+            appendMessage(mainMessages, role === 'user' ? 'You' : (role === 'assistant' ? 'Assistant' : role), content);
+        });
+    }
+
+    function autosize(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        const max = 250;
+        el.style.height = Math.min(el.scrollHeight, max) + 'px';
+    }
+
+    function appendMessage(container, role, text) {
+        const div = document.createElement('div');
+        div.style.marginBottom = '8px';
+        div.style.whiteSpace = 'pre-wrap';
+        div.innerHTML = '<strong>' + role + ':</strong> ';
+        const span = document.createElement('span');
+        span.textContent = text || '';
+        div.appendChild(span);
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function handleSendFrom(el, container, mode='chat') {
+        const text = el.value.trim();
+        if (!text) return;
+
+        appendMessage(container, 'You', text);
+        el.value = '';
+        autosize(el);
+
+        const thinking = document.createElement('div');
+        thinking.className = 'text-muted';
+        thinking.textContent = 'Assistant: thinking...';
+        container.appendChild(thinking);
+        container.scrollTop = container.scrollHeight;
+
+        try {
+            const res = await window.sendToAI({
+                message: text,
+                mode: mode,
+                context: '',
+                conversation_id: window.currentConversationId || null
+            });
+
+            thinking.remove();
+
+            if (res.ok) {
+                appendMessage(container, 'Assistant', res.reply || '');
+                // if backend created/returned a conversation id, adopt it
+                if (res.conversation_id) window.currentConversationId = res.conversation_id;
+            } else {
+                appendMessage(container, 'Assistant', 'Error: ' + (res.error || 'Unknown'));
+            }
+        } catch (err) {
+            thinking.remove();
+            appendMessage(container, 'Assistant', 'Request failed: ' + err.message);
+        }
+    }
+
+    document.querySelectorAll('.autosize').forEach(el => {
+        autosize(el);
+        el.addEventListener('input', () => autosize(el));
+    });
+
+    sendBtn.addEventListener('click', () => handleSendFrom(userInput, mainMessages, 'chat'));
+
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendBtn.click();
+        }
+    });
+
+    openEditorBtn.addEventListener('click', () => {
+        const sel = window.getSelection().toString().trim();
+        const context = sel || '';
+        window.openAiSidePanel(context, 'chat', false);
+        const sideInput = document.getElementById('sideUserInput');
+        if (sideInput) sideInput.focus();
+    });
+
+    // conversation selector handling
+    const convSelect = document.getElementById('conversationSelect');
+    const newConvBtn = document.getElementById('newConversationBtn');
+        if (convSelect) {
+        convSelect.addEventListener('change', () => {
+            const v = convSelect.value;
+            window.currentConversationId = v ? v : null;
+            if (window.currentConversationId) fetchConversationDetail(window.currentConversationId);
+        });
+    }
+    if (newConvBtn) {
+        newConvBtn.addEventListener('click', () => {
+            // clear selection to start a new conversation
+            convSelect.value = '';
+            window.currentConversationId = null;
+            // optionally clear messages UI
+            mainMessages.innerHTML = '';
+        });
+    }
+
+    // expose loader and initial load
+    window.loadConversations = loadConversations;
+    try { loadConversations(); } catch(e) {}
+})();
+</script>
+{% endblock %}

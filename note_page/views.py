@@ -59,13 +59,11 @@ def note(request):
         note_id = data.get('note_id')
         note_section_id = data.get('note_section_id')
         content = data.get('content')
-        transcription = data.get('transcription')
         
         Note.objects.create(
             note_id=note_id,
             section_id_id=note_section_id,
             content=content,
-            transcription=transcription
         )
         return redirect('/')
     
@@ -75,7 +73,7 @@ def note(request):
         queryset = queryset.filter(content__icontains=request.GET.get('search'))
 
     context = {'notes': queryset}
-    return render(request, 'notes.html', context)
+    return render(request, 'note_view.html', context)
 
 
 def delete_note(request, id):
@@ -90,11 +88,9 @@ def update_note(request, id):
         data = request.POST
         note_section_id = data.get('note_section_id')
         content = data.get('content')
-        transcription = data.get('transcription')
 
         note.section_id_id = note_section_id
         note.content = content
-        note.transcription = transcription
         note.save()
         return redirect('/')
 
