@@ -1,0 +1,393 @@
+<style>
+#aiSideBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.18);
+    z-index: 2990;
+}
+
+#aiSidePanel {
+    position: fixed;
+    right: -440px;
+    top: 0;
+    height: 100vh;
+    width: 420px;
+    max-width: 92vw;
+    background: #fff;
+    box-shadow: -8px 0 24px rgba(0,0,0,0.12);
+    z-index: 3000;
+    transition: right .25s ease, width .25s ease;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #eee;
+}
+
+#aiSidePanel.is-open {
+    right: 0;
+}
+
+#aiSidePanel.is-collapsed {
+    width: 72px;
+}
+
+#aiSidePanel.is-collapsed .ai-panel-body,
+#aiSidePanel.is-collapsed .ai-panel-footer,
+#aiSidePanel.is-collapsed .ai-panel-context {
+    display: none;
+}
+
+.ai-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid #eee;
+    flex: 0 0 auto;
+    background: #fff;
+}
+
+.ai-panel-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 12px;
+    background: #fafafa;
+}
+
+.ai-panel-footer {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+    border-top: 1px solid #eee;
+    background: #fff;
+}
+
+.ai-message {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.ai-message.user {
+    background: #e9f2ff;
+    margin-left: 28px;
+}
+
+.ai-message.assistant {
+    background: #f4f4f4;
+    margin-right: 28px;
+}
+
+.ai-message.context {
+    background: #fff7d9;
+    border: 1px solid #f2e2a0;
+}
+
+.ai-message.thinking {
+    background: transparent;
+    color: #6c757d;
+    font-style: italic;
+    padding-left: 4px;
+}
+
+.ai-panel-title {
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.ai-panel-context {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 3px;
+}
+
+.ai-panel-actions .btn {
+    margin-left: 4px;
+}
+</style>
+
+<div id="aiSideBackdrop" class="d-none"></div>
+
+<div id="aiSidePanel" aria-hidden="true">
+    <div class="ai-panel-header">
+        <div>
+            <div id="aiSideTitle" class="ai-panel-title">AI Assistant</div>
+            <div id="sideContextInfo" class="ai-panel-context">Context: none</div>
+        </div>
+        <div class="ai-panel-actions">
+            <button id="aiSideCollapse" type="button" class="btn btn-sm btn-light" title="Collapse">▁</button>
+            <button id="aiSideClose" type="button" class="btn btn-sm btn-light" title="Close">✕</button>
+        </div>
+    </div>
+
+    <div id="sideMessages" class="ai-panel-body"></div>
+
+    <div class="ai-panel-footer">
+        <div class="input-group">
+            <textarea
+                id="sideUserInput"
+                class="form-control autosize"
+                rows="1"
+                placeholder="Ask a follow-up..."></textarea>
+            <div class="input-group-append">
+                <button id="sideSendBtn" type="button" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+
+        <div class="mt-2 d-flex justify-content-between align-items-center">
+            <small class="text-muted" id="sideModeHint">Shift+Enter for a new line</small>
+            <button id="sideAutoSend" type="button" class="btn btn-sm btn-outline-secondary">Send context</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function autosize(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        const max = 220;
+        el.style.height = Math.min(el.scrollHeight, max) + 'px';
+    }
+
+    function enableAutosize(el) {
+        if (!el) return;
+        autosize(el);
+        el.addEventListener('input', () => autosize(el));
+    }
+
+    function createMessage(role, text) {
+        const div = document.createElement('div');
+        div.className = 'ai-message ' + role;
+        div.textContent = text || '';
+        return div;
+    }
+
+    async function sendToAI(payload) {
+        const resp = await fetch("{% url 'assistant:api_chat' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(payload)
+        });
+        return resp.json();
+    }
+
+    const panel = document.getElementById('aiSidePanel');
+    const backdrop = document.getElementById('aiSideBackdrop');
+    const titleEl = document.getElementById('aiSideTitle');
+    const contextInfoEl = document.getElementById('sideContextInfo');
+    const modeHintEl = document.getElementById('sideModeHint');
+    const messagesEl = document.getElementById('sideMessages');
+    const inputEl = document.getElementById('sideUserInput');
+    const sendBtn = document.getElementById('sideSendBtn');
+    const autoSendBtn = document.getElementById('sideAutoSend');
+    const collapseBtn = document.getElementById('aiSideCollapse');
+    const closeBtn = document.getElementById('aiSideClose');
+
+    let currentContext = '';
+    let currentMode = 'chat';
+    let currentCollapsed = false;
+    let currentThinkingNode = null;
+
+    function showPanel() {
+        panel.classList.add('is-open');
+        backdrop.classList.remove('d-none');
+        panel.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hidePanel() {
+        panel.classList.remove('is-open');
+        panel.classList.remove('is-collapsed');
+        backdrop.classList.add('d-none');
+        panel.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        currentCollapsed = false;
+    }
+
+    function setCollapsed(value) {
+        currentCollapsed = !!value;
+        if (currentCollapsed) {
+            panel.classList.add('is-collapsed');
+        } else {
+            panel.classList.remove('is-collapsed');
+        }
+    }
+
+    function setHeaderForMode(mode) {
+        if (mode === 'explain') {
+            titleEl.textContent = 'AI Explain';
+            modeHintEl.textContent = 'Ask questions about the selected text.';
+            inputEl.placeholder = 'Ask the AI to explain, simplify, or clarify...';
+        } else if (mode === 'command') {
+            titleEl.textContent = 'AI Command';
+            modeHintEl.textContent = 'Use this panel to instruct the AI with the selected text as context.';
+            inputEl.placeholder = 'Tell the AI what to do...';
+        } else {
+            titleEl.textContent = 'AI Assistant';
+            modeHintEl.textContent = 'Shift+Enter for a new line';
+            inputEl.placeholder = 'Ask a follow-up...';
+        }
+    }
+
+    function setContext(text) {
+        currentContext = (text || '').trim();
+        contextInfoEl.textContent = currentContext
+            ? ('Context: ' + (currentContext.length > 90 ? currentContext.slice(0, 87) + '...' : currentContext))
+            : 'Context: none';
+
+        messagesEl.innerHTML = '';
+        if (currentContext) {
+            messagesEl.appendChild(createMessage('context', currentContext));
+        }
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function getStarterPrompt(mode, contextText, overrideText) {
+        if (overrideText) return overrideText;
+
+        if (mode === 'explain') {
+            return contextText
+                ? 'Explain the context above in simple terms.'
+                : 'Explain this topic clearly and simply.';
+        }
+
+        if (mode === 'command') {
+            return contextText
+                ? 'Use the context above and help me with my request.'
+                : 'Help me with this command.';
+        }
+
+        return '';
+    }
+
+    function openAiSidePanel(contextText, mode, autoSend, starterText) {
+        currentMode = mode || 'chat';
+        setHeaderForMode(currentMode);
+        setContext(contextText || '');
+        showPanel();
+        setCollapsed(false);
+
+        const starter = getStarterPrompt(currentMode, currentContext, starterText);
+        inputEl.value = starter;
+        autosize(inputEl);
+        inputEl.focus();
+        inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+
+        if (autoSend && inputEl.value.trim()) {
+            sendBtn.click();
+        }
+    }
+
+    async function handleSend() {
+        const text = inputEl.value.trim();
+        if (!text) return;
+
+        messagesEl.appendChild(createMessage('user', text));
+        inputEl.value = '';
+        autosize(inputEl);
+
+        currentThinkingNode = createMessage('thinking', 'AI: thinking...');
+        messagesEl.appendChild(currentThinkingNode);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+
+        try {
+            const payload = {
+                message: text,
+                mode: currentMode || 'chat',
+                context: currentContext || '',
+                conversation_id: window.currentConversationId || null
+            };
+
+            const res = await sendToAI(payload);
+
+            // adopt returned conversation id so future messages persist
+            if (res && res.conversation_id) {
+                window.currentConversationId = res.conversation_id;
+            }
+
+            if (currentThinkingNode) {
+                currentThinkingNode.remove();
+                currentThinkingNode = null;
+            }
+
+            if (res.ok) {
+                messagesEl.appendChild(createMessage('assistant', res.reply || ''));
+            } else {
+                messagesEl.appendChild(createMessage('assistant', 'Error: ' + (res.error || 'Unknown error')));
+            }
+        } catch (err) {
+            if (currentThinkingNode) {
+                currentThinkingNode.remove();
+                currentThinkingNode = null;
+            }
+            messagesEl.appendChild(createMessage('assistant', 'Request failed: ' + err.message));
+        }
+
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function sendCurrentContext() {
+        if (!currentContext) return;
+        const starter = getStarterPrompt(currentMode, currentContext);
+        inputEl.value = starter || currentContext;
+        autosize(inputEl);
+        sendBtn.click();
+    }
+
+    enableAutosize(inputEl);
+
+    sendBtn.addEventListener('click', handleSend);
+
+    inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendBtn.click();
+        }
+    });
+
+    autoSendBtn.addEventListener('click', sendCurrentContext);
+
+    collapseBtn.addEventListener('click', () => {
+        setCollapsed(!currentCollapsed);
+    });
+
+    closeBtn.addEventListener('click', hidePanel);
+    backdrop.addEventListener('click', hidePanel);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && panel.classList.contains('is-open')) {
+            hidePanel();
+        }
+    });
+
+    window.openAiSidePanel = function(context, mode, autoSend, starterText) {
+        openAiSidePanel(context, mode, !!autoSend, starterText);
+    };
+
+    window.sendToAI = sendToAI;
+    window.aiChatAutosize = autosize;
+
+    document.querySelectorAll('textarea.autosize').forEach(enableAutosize);
+})();
+</script>

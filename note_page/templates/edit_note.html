@@ -26,12 +26,29 @@
                 {{ form.section }}
             </div>
 
+            <!-- Mini toolbar -->
+            <div class="note-toolbar mb-2" id="miniToolbarEdit">
+                <button type="button" class="btn btn-sm btn-light" data-action="bold"><b>B</b></button>
+                <button type="button" class="btn btn-sm btn-light" data-action="italic"><i>I</i></button>
+                <button type="button" class="btn btn-sm btn-light" data-action="underline"><u>U</u></button>
+                <button type="button" class="btn btn-sm btn-light" data-action="code"><code>{ }</code></button>
+                <button type="button" class="btn btn-sm btn-light" data-action="link">🔗</button>
+            </div>
+
             <div class="form-group">
                 <label for="id_content">Note Body</label>
                 {{ form.content }}
                 {% if form.content.errors %}
                     <div class="text-danger">{{ form.content.errors }}</div>
                 {% endif %}
+            </div>
+
+            <!-- selection popup -->
+            <div id="selectionPopupEdit" class="selection-popup d-none">
+                <button type="button" class="btn btn-sm btn-light" data-action="bold">B</button>
+                <button type="button" class="btn btn-sm btn-light" data-action="italic">I</button>
+                <button type="button" class="btn btn-sm btn-light" data-action="underline">U</button>
+                <button type="button" class="btn btn-sm btn-light" data-action="link">🔗</button>
             </div>
 
             <div class="d-flex justify-content-between">
@@ -45,4 +62,103 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+/* reuse same styles used in note_view.html */
+.note-toolbar { display:flex; gap:6px; }
+.selection-popup { position:absolute; z-index:2000; background:#fff; border:1px solid #ddd; padding:4px; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+.selection-popup button { margin:0 2px; padding:4px 6px; font-size:13px; }
+.d-none { display:none; }
+</style>
+
+<script>
+(function() {
+  const ta = document.getElementById('noteContent');
+  const toolbar = document.getElementById('miniToolbarEdit');
+  const popup = document.getElementById('selectionPopupEdit');
+
+  function wrapSelection(textarea, left, right) {
+    const val = textarea.value;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    if (start == null) return;
+    const selected = val.slice(start, end);
+    const before = val.slice(0, start);
+    const after = val.slice(end);
+    const newVal = before + left + selected + right + after;
+    textarea.value = newVal;
+    const newStart = start + left.length;
+    const newEnd = newStart + selected.length;
+    textarea.focus();
+    textarea.setSelectionRange(newStart, newEnd);
+  }
+
+  function applyAction(action, textarea) {
+    if (action === 'bold') return wrapSelection(textarea, '**', '**');
+    if (action === 'italic') return wrapSelection(textarea, '*', '*');
+    if (action === 'underline') return wrapSelection(textarea, '<u>', '</u>');
+    if (action === 'code') return wrapSelection(textarea, '`', '`');
+    if (action === 'link') {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selected = textarea.value.slice(start, end) || 'link text';
+      const url = prompt('Enter URL', 'https://');
+      if (!url) return;
+      const left = '[';
+      const right = `](${url})`;
+      wrapSelection(textarea, left, right);
+    }
+  }
+
+  toolbar.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.getAttribute('data-action');
+      applyAction(action, ta);
+    });
+  });
+
+  popup.addEventListener('click', (ev) => {
+    const action = ev.target.closest('button')?.getAttribute('data-action');
+    if (action) applyAction(action, ta);
+    hidePopup();
+  });
+
+  function showPopupAt(x, y) {
+    popup.style.left = x + 'px';
+    popup.style.top = (y - popup.offsetHeight - 10) + 'px';
+    popup.classList.remove('d-none');
+  }
+  function hidePopup() { popup.classList.add('d-none'); }
+
+  ta.addEventListener('mouseup', (ev) => {
+    setTimeout(() => {
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      if (start != null && end != null && end > start) {
+        showPopupAt(ev.pageX, ev.pageY);
+      } else {
+        hidePopup();
+      }
+    }, 10);
+  });
+
+  ta.addEventListener('keyup', (ev) => {
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    if (start != null && end != null && end > start) {
+      const rect = ta.getBoundingClientRect();
+      showPopupAt(rect.right - 120 + window.pageXOffset, rect.top + 20 + window.pageYOffset);
+    } else {
+      hidePopup();
+    }
+  });
+
+  document.addEventListener('mousedown', (ev) => {
+    if (!popup.contains(ev.target) && ev.target !== ta) hidePopup();
+  });
+
+})();
+</script>
 {% endblock %}

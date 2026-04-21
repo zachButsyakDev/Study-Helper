@@ -54,16 +54,27 @@ def edit_note(request, id):
     """Edit an existing note."""
     note = get_object_or_404(Note, note_id=id, user=request.user)
     if request.method == 'POST':
-        form = NoteForm(request.POST, instance=note)
-        if form.is_valid():
-            form.save()
-            return redirect('note_view', id=note.note_id)
-    else:
-        form = NoteForm(instance=note)
-        form.fields['section'].queryset = NoteSection.objects.filter(user=request.user)
+        data = request.POST
+        note_id = data.get('note_id')
+        note_section_id = data.get('note_section_id')
+        content = data.get('content')
+        transcription = data.get('transcription')
+        
+        Note.objects.create(
+            note_id=note_id,
+            section_id_id=note_section_id,
+            content=content,
+            transcription=transcription
+        )
+        return redirect('/')
+    
+    queryset = Note.objects.all()
+    
+    if request.GET.get('search'):
+        queryset = queryset.filter(content__icontains=request.GET.get('search'))
 
-    context = {'form': form, 'note': note}
-    return render(request, 'edit_note.html', context)
+    context = {'notes': queryset}
+    return render(request, 'notes.html', context)
 
 
 @login_required
@@ -71,8 +82,17 @@ def delete_note(request, id):
     """Delete a note belonging to the logged-in user."""
     note = get_object_or_404(Note, note_id=id, user=request.user)
     if request.method == 'POST':
-        note.delete()
-        return redirect('notes')
+        data = request.POST
+        note_section_id = data.get('note_section_id')
+        content = data.get('content')
+        transcription = data.get('transcription')
+
+        note.section_id_id = note_section_id
+        note.content = content
+        note.transcription = transcription
+        note.save()
+        return redirect('/')
+
     context = {'note': note}
     return render(request, 'confirm_delete_note.html', context)
 
